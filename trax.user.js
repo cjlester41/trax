@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      0.2.0
+// @version      0.2.1
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       christopher.lester@delta.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
