@@ -1,8 +1,7 @@
 // ==UserScript==
-// @name         Trax
-// @namespace    http://tampermonkey.net/
-// @version      0.1.1
-// @description  Trax Discombobulator
+// @name         Trax++
+// @version      0.2.0
+// @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       christopher.lester@delta.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -18,7 +17,6 @@
     const isLarge   = isKiosk || isDefault;
 
     const css = `
-        
         div[data-hidden-text] {
             clip-path: polygon(0 0, 0 0, 0 0, 0 0) !important;
             height: 0 !important;
@@ -27,7 +25,6 @@
             padding: 0 !important;
         }
 
-        
         div[data-time-out] {
             color: #888 !important;
             font-size: 1em !important;
@@ -36,12 +33,10 @@
             gap: 0.25em;
         }
 
-        
         [data-gt-formatted] {
             color: #888 !important;
         }
 
-        
         .sup-sub-stack {
             display: inline-flex;
             flex-direction: column;
@@ -58,8 +53,7 @@
             padding: 0;
             line-height: 1;
         }
-            
-        
+
         div.grid.gap-0.border[style*="grid-template-columns: 1.25fr 1fr 1.25fr 1fr 1fr 1.5fr 1fr 1fr 1.25fr 1.5fr 3fr 0.5fr"] {
             display: none !important;
         }
@@ -73,11 +67,10 @@
         }
 
         div.grid.gap-0:not(.sticky)[style*="grid-template-columns"] svg[viewBox="0 0 24 24"] {
-            transform: rotate(180deg) !important;
-            transition: transform 0.2s ease !important;
+            transform: rotate(180deg);
         }
         div.grid.gap-0:not(.sticky)[data-trax-row-expanded][style*="grid-template-columns"] svg[viewBox="0 0 24 24"] {
-            transform: rotate(0deg) !important;
+            transform: rotate(0deg);
         }
 
         div[style*="grid-template-columns: 1.25fr 1fr 1.25fr"] {
@@ -86,17 +79,14 @@
                 : '0.55fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.1fr 1.3fr 3fr 0.5fr'} !important;
         }
 
-        
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(1) > div > div > div:not(:first-child) {
             display: none !important;
         }
 
-        
         svg[width="35"][height="34"] {
             transform: scale(${isLarge ? '1.0' : '0.75'}) !important;
         }
 
-        
         div[style*="grid-template-columns"]:not(.sticky) > div {
             padding-top: ${isKiosk ? '6px' : '3px'} !important;
             padding-bottom: ${isKiosk ? '6px' : '3px'} !important;
@@ -105,36 +95,30 @@
         }
 
         ${isLarge ? `
-        
         ::-webkit-scrollbar { display: none !important; }
         * { scrollbar-width: none !important; }
         ` : ''}
         ${isKiosk ? `
-        
         header.px-6.py-3.shadow-sm {
             display: none !important;
         }
         ` : ''}
 
-        
         div[style*="grid-template-columns"]:not(.sticky) > div *:not(sup):not(sub):not(.sup-sub-stack) {
             font-size: inherit !important;
             font-weight: inherit !important;
         }
 
-        
         div[style*="grid-template-columns"]:not(.sticky) > div span:not(.sup-sub-stack)[class*="rounded-full"],
         div[style*="grid-template-columns"]:not(.sticky) > div span:not(.sup-sub-stack)[data-deferred-pill] {
             font-size: 0.9rem !important;
             font-weight: 600 !important;
         }
 
-        
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(10) {
             font-size: ${isKiosk ? '0.75rem' : '0.525rem'} !important;
         }
 
-        
         div[data-deferred-marker] {
             display: flex !important;
             flex-direction: row !important;
@@ -144,7 +128,6 @@
             margin-top: 2px;
         }
 
-        
         span[data-deferred-pill] {
             display: inline-flex !important;
             align-items: center !important;
@@ -152,7 +135,6 @@
             flex-shrink: 0 !important;
         }
 
-        
         :root {
             --customer-color: #000 !important;
             --surface-primary-dark: #000 !important;
@@ -162,22 +144,18 @@
             --gray-7-dark: #000 !important;
         }
 
-        
         div.flex.px-2.pb-2.pt-1.items-center.justify-between {
             display: none !important;
         }
 
-        
         span.absolute {
             display: none !important;
         }
 
-        
         button:has(svg[viewBox="0 0 20 18"]) {
             display: none !important;
         }
 
-        
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(2) {
             padding-left: 18px !important;
         }
@@ -199,7 +177,6 @@
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(11):hover {
             background-color: transparent !important;
         }
-        
     `;
 
     GM_addStyle(css);
@@ -754,6 +731,20 @@
         if (next) next.style.setProperty('display', 'none', 'important');
     }
 
+    function stylePopupMelCdl() {
+        const panel = document.querySelector('div[id^="headlessui-dialog-panel"] .rounded-xl');
+        if (!panel) return;
+        panel.querySelectorAll('*').forEach(el => {
+            if (el.children.length > 0) return;
+            const text = el.textContent.trim();
+            if (/\bMEL\b/.test(text)) {
+                el.style.setProperty('color', '#ff4444', 'important');
+            } else if (/\bCDL\b/.test(text)) {
+                el.style.setProperty('color', '#4499ff', 'important');
+            }
+        });
+    }
+
     const observer = new MutationObserver((records) => {
         const hasChildListMutation = records.some(r => r.type === 'childList');
         if (hasChildListMutation && expandedRowKeys.size > 0) {
@@ -773,6 +764,7 @@
         runTimeout = setTimeout(() => {
             processAllRows();
             moveHeaderTimeToMyAC();
+            stylePopupMelCdl();
         }, 100);
     });
 
@@ -829,8 +821,6 @@
         if (closeBtn) closeBtn.click();
     }, { capture: true, passive: true });
 
-
-
     document.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
@@ -841,23 +831,32 @@
         if (!detailPanel || !detailPanel.classList.contains('border')) return;
         e.stopPropagation();
         const expanding = !detailPanel.hasAttribute('data-trax-expanded');
+        const chevronSvg = btn.querySelector('svg[viewBox="0 0 24 24"]');
         if (detailPanel._traxAnim) {
             detailPanel._traxAnim.cancel();
             detailPanel.style.overflow = '';
         }
+        if (chevronSvg?._traxSvgAnim) chevronSvg._traxSvgAnim.cancel();
         if (expanding) {
             detailPanel.removeAttribute('data-trax-collapsing');
             detailPanel.setAttribute('data-trax-expanded', 'true');
             row.setAttribute('data-trax-row-expanded', 'true');
             const rowKey = getRowKey(row);
             if (rowKey) expandedRowKeys.add(rowKey);
-            const targetHeight = detailPanel.scrollHeight;
+            if (chevronSvg) {
+                chevronSvg._traxSvgAnim = chevronSvg.animate(
+                    [{ transform: 'rotate(180deg)' }, { transform: 'rotate(0deg)' }],
+                    { duration: 200, easing: 'ease', fill: 'forwards' }
+                );
+            }
+            detailPanel.style.height = '0px';
             detailPanel.style.overflow = 'hidden';
+            const targetHeight = detailPanel.scrollHeight;
             const anim = detailPanel.animate(
                 [{ height: '0px' }, { height: targetHeight + 'px' }],
                 { duration: 200, easing: 'ease-out' }
             );
-            anim.onfinish = () => { detailPanel.style.overflow = ''; detailPanel._traxAnim = null; };
+            anim.onfinish = () => { detailPanel.style.height = ''; detailPanel.style.overflow = ''; detailPanel._traxAnim = null; };
             detailPanel._traxAnim = anim;
         } else {
             const currentHeight = detailPanel.offsetHeight;
@@ -866,6 +865,12 @@
             row.removeAttribute('data-trax-row-expanded');
             const rowKey = getRowKey(row);
             if (rowKey) expandedRowKeys.delete(rowKey);
+            if (chevronSvg) {
+                chevronSvg._traxSvgAnim = chevronSvg.animate(
+                    [{ transform: 'rotate(0deg)' }, { transform: 'rotate(180deg)' }],
+                    { duration: 200, easing: 'ease', fill: 'forwards' }
+                );
+            }
             detailPanel.style.overflow = 'hidden';
             const anim = detailPanel.animate(
                 [{ height: currentHeight + 'px' }, { height: '0px' }],
