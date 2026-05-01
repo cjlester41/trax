@@ -10,7 +10,7 @@
 (function() {
     'use strict';
 
-    const displayMode = 'kiosk'; // change to default
+    const displayMode = 'compact';
 
     const isKiosk   = displayMode === 'kiosk';
     const isDefault = displayMode === 'default';
@@ -137,11 +137,11 @@
 
         :root {
             --customer-color: #000 !important;
-            --surface-primary-dark: #fff !important;
-            --surface-overlay-dark: #fff !important;
-            --gray-5-dark: #e8e8e8 !important;
-            --gray-6-dark: #f0f0f0 !important;
-            --gray-7-dark: #fff !important;
+            --surface-primary-dark: #000 !important;
+            --surface-overlay-dark: #222 !important;
+            --gray-5-dark: #222 !important;
+            --gray-6-dark: #101215 !important;
+            --gray-7-dark: #000 !important;
         }
 
         div.flex.px-2.pb-2.pt-1.items-center.justify-between {
