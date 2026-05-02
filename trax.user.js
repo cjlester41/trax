@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.3
+// @version      2.0.4
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
@@ -178,6 +178,14 @@
         /* Suppress hover background on the maintenance column cell */
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(11):hover {
             background-color: transparent !important;
+        }
+
+        /* L-RON pills in last column: display in a row */
+        div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(12) .flex-col {
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 4px !important;
         }
     `;
 
@@ -583,6 +591,7 @@
                         if (/^CHR$/i.test(t)) el.textContent = 'CH';
                         else if (/^PAD$/i.test(t)) el.textContent = 'PD';
                         else if (/^TBA$/i.test(t)) el.textContent = 'TB';
+                        else if (/^NONE$/i.test(t)) el.textContent = 'NA';
                     });
 
                     const kids = Array.from(flexCol.children);
@@ -600,11 +609,12 @@
 
             const lastCell = row.children[11];
             if (lastCell) {
-                const innerDiv = lastCell.querySelector('.flex-col > div');
-                if (innerDiv && innerDiv.style.flexDirection !== 'row') {
-                    innerDiv.style.flexDirection = 'row';
-                    innerDiv.style.alignItems = 'center';
-                    innerDiv.style.gap = '4px';
+                const flexCol = lastCell.querySelector('.flex-col');
+                if (flexCol && flexCol.style.flexDirection !== 'row') {
+                    flexCol.style.setProperty('flex-direction', 'row', 'important');
+                    flexCol.style.setProperty('align-items', 'center', 'important');
+                    flexCol.style.setProperty('flex-wrap', 'wrap', 'important');
+                    flexCol.style.setProperty('gap', '4px', 'important');
                 }
             }
 
@@ -693,6 +703,14 @@
         if (!myACButton) return;
 
         myACButton.style.display = 'none';
+
+        // Rename page title
+        document.querySelectorAll('header *').forEach(el => {
+            if (el.children.length === 0 && el.textContent.trim() === 'Trax' && !el.hasAttribute('data-trax-renamed')) {
+                el.textContent = 'Trax 2.0';
+                el.setAttribute('data-trax-renamed', 'true');
+            }
+        });
 
         const divider = myACButton.nextElementSibling;
         if (!divider) return;
