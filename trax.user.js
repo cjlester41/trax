@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.6
+// @version      2.0.7
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
@@ -20,11 +20,18 @@
         location.reload();
     };
 
-    const isKiosk   = displayMode === 'kiosk';
-    const isDefault = displayMode === 'default';
-    const isLarge   = isKiosk || isDefault;
+    const isKiosk        = displayMode === 'kiosk';
+    const isCompactKiosk  = displayMode === 'compactKiosk';
+    const isDefault       = displayMode === 'default';
+    const isLarge         = isKiosk || isDefault;
+    const isKioskLike     = isKiosk || isCompactKiosk;
 
-    const css = `
+    function isLightMode() {
+        return !document.documentElement.classList.contains('dark');
+    }
+
+    function buildCss(isLight) {
+        return `
         div[data-hidden-text] {
             clip-path: polygon(0 0, 0 0, 0 0, 0 0) !important;
             height: 0 !important;
@@ -95,16 +102,17 @@
             transform: scale(${isLarge ? '1.0' : '0.75'}) !important;
         }
 
+
         div[style*="grid-template-columns"]:not(.sticky) > div {
-            padding-top: ${isKiosk ? '6px' : '3px'} !important;
-            padding-bottom: ${isKiosk ? '6px' : '3px'} !important;
-            font-size: ${isKiosk ? '1.5rem' : '1.2rem'} !important;
-            font-weight: 400 !important;
+            padding-top: ${isKioskLike ? '6px' : '3px'} !important;
+            padding-bottom: ${isKioskLike ? '6px' : '3px'} !important;
+            font-size: ${isKiosk ? '1.5rem' : isCompactKiosk ? '1.35rem' : '1.2rem'} !important;
+            font-weight: ${isLight ? '600' : '400'} !important;
         }
 
         ::-webkit-scrollbar { display: none !important; }
         * { scrollbar-width: none !important; }
-        ${isKiosk ? `
+        ${isKioskLike ? `
         header.px-6.py-3.shadow-sm {
             display: none !important;
         }
@@ -122,7 +130,7 @@
         }
 
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(10) {
-            font-size: ${isKiosk ? '0.75rem' : '0.525rem'} !important;
+            font-size: ${isKiosk ? '0.75rem' : isCompactKiosk ? '0.6rem' : '0.525rem'} !important;
         }
 
         div[data-deferred-marker] {
@@ -141,6 +149,7 @@
             flex-shrink: 0 !important;
         }
 
+        ${!isLight ? `
         :root {
             --customer-color: #000 !important;
             --surface-primary-dark: #000 !important;
@@ -149,12 +158,13 @@
             --gray-6-dark: #101215 !important;
             --gray-7-dark: #000 !important;
         }
+        ` : ''}
 
         div.flex.px-2.pb-2.pt-1.items-center.justify-between {
             display: none !important;
         }
 
-        ${isKiosk ? `
+        ${isKioskLike ? `
         span.absolute {
             display: none !important;
         }
@@ -181,8 +191,8 @@
             background-color: transparent !important;
         }
         div[id^="headlessui-dialog-panel"] .rounded-xl {
-            background-color: var(--gray-6-dark) !important;
-            border: 1px solid rgba(255, 255, 255, 0.35) !important;
+            background-color: ${isLight ? 'white' : 'var(--gray-6-dark)'} !important;
+            border: 1px solid ${isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.35)'} !important;
         }
 
         /* Suppress hover background on the maintenance column cell */
@@ -190,8 +200,23 @@
             background-color: transparent !important;
         }
     `;
+    }
 
-    GM_addStyle(css);
+    let traxStyleEl = null;
+    function applyThemeStyle() {
+        const isLight = isLightMode();
+        if (!traxStyleEl) {
+            traxStyleEl = GM_addStyle(buildCss(isLight));
+        } else {
+            traxStyleEl.textContent = buildCss(isLight);
+        }
+    }
+
+    applyThemeStyle();
+
+    new MutationObserver(() => {
+        applyThemeStyle();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     let runTimeout;
     let lastDeferredDebugSummary = '';
@@ -603,7 +628,9 @@
                     }
                     const first = flexCol.children[0];
                     if (first) {
-                        first.style.setProperty('color', isLarge ? '#66aaff' : '#3391ff', 'important');
+                        first.style.setProperty('color', isLightMode()
+                        ? (isLarge ? '#0055cc' : '#0044bb')
+                        : (isLarge ? '#66aaff' : '#3391ff'), 'important');
                         first.style.setProperty('font-size', '1.07em', 'important');
                     }
                 }
@@ -730,7 +757,7 @@
         if (!timeContainer) {
             timeContainer = document.createElement('div');
             timeContainer.setAttribute('data-time-display-container', 'true');
-            timeContainer.style.cssText = `display: flex; flex-direction: row; align-items: flex-start; font-size: ${isKiosk ? '2.2em' : '1.6em'}; font-weight: 400; margin-left: 8px;`;
+            timeContainer.style.cssText = `display: flex; flex-direction: row; align-items: flex-start; font-size: ${isKioskLike ? '2.2em' : '1.6em'}; font-weight: 400; margin-left: 8px;`;
         }
         if (divider.nextElementSibling !== timeContainer) {
             divider.after(timeContainer);
@@ -753,7 +780,7 @@
             wipLabel.style.cssText = 'font-style: italic; font-size: 1.0em; font-weight: 300; color: var(--text-secondary-dark); align-self: center; margin-left: 20px;';
             wipLabel.textContent = 'work in progress \u2014 all feedback welcome';
         }
-        wipLabel.style.display = isKiosk ? '' : 'none';
+        wipLabel.style.display = isKioskLike ? '' : 'none';
         if (timeContainer.nextElementSibling !== wipLabel) {
             timeContainer.after(wipLabel);
         }
