@@ -1,16 +1,18 @@
 // ==UserScript==
 // @name         Trax++
-// @version      0.2.1
+// @version      2.0.3
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
-// @author       christopher.lester@delta.com
+// @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    const displayMode = 'kiosk'; // change to default
+    const displayMode = GM_getValue('displayMode', 'default');
 
     const isKiosk   = displayMode === 'kiosk';
     const isDefault = displayMode === 'default';

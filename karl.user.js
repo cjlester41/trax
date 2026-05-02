@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Karl
-// @version      0.1.1
+// @version      1.1.0
 // @description  Karl likes to walk
-// @author       christopher.lester@delta.com
+// @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
 // ==/UserScript==
