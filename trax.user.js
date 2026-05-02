@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.4
+// @version      2.0.5
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
@@ -77,8 +77,8 @@
 
         div[style*="grid-template-columns: 1.25fr 1fr 1.25fr"] {
             grid-template-columns: ${isLarge
-                ? '0.4fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.2fr 1.85fr 3fr 0.5fr'
-                : '0.55fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.1fr 1.3fr 3fr 0.5fr'} !important;
+                ? '0.4fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.2fr 1.85fr 3fr 0.6fr'
+                : '0.55fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.1fr 1.3fr 3fr 0.65fr'} !important;
         }
 
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(1) > div > div > div:not(:first-child) {
@@ -96,10 +96,8 @@
             font-weight: 400 !important;
         }
 
-        ${isLarge ? `
         ::-webkit-scrollbar { display: none !important; }
         * { scrollbar-width: none !important; }
-        ` : ''}
         ${isKiosk ? `
         header.px-6.py-3.shadow-sm {
             display: none !important;
@@ -150,11 +148,17 @@
             display: none !important;
         }
 
+        ${isKiosk ? `
         span.absolute {
             display: none !important;
         }
+        ` : ''}
 
         button:has(svg[viewBox="0 0 20 18"]) {
+            display: none !important;
+        }
+
+        button:has(svg[viewBox="0 0 20 14"]) {
             display: none !important;
         }
 
@@ -178,14 +182,6 @@
         /* Suppress hover background on the maintenance column cell */
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(11):hover {
             background-color: transparent !important;
-        }
-
-        /* L-RON pills in last column: display in a row */
-        div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(12) .flex-col {
-            flex-direction: row !important;
-            flex-wrap: wrap !important;
-            align-items: center !important;
-            gap: 4px !important;
         }
     `;
 
@@ -609,12 +605,11 @@
 
             const lastCell = row.children[11];
             if (lastCell) {
-                const flexCol = lastCell.querySelector('.flex-col');
-                if (flexCol && flexCol.style.flexDirection !== 'row') {
-                    flexCol.style.setProperty('flex-direction', 'row', 'important');
-                    flexCol.style.setProperty('align-items', 'center', 'important');
-                    flexCol.style.setProperty('flex-wrap', 'wrap', 'important');
-                    flexCol.style.setProperty('gap', '4px', 'important');
+                const innerDiv = lastCell.querySelector('.flex-col > div');
+                if (innerDiv && innerDiv.style.flexDirection !== 'row') {
+                    innerDiv.style.flexDirection = 'row';
+                    innerDiv.style.alignItems = 'center';
+                    innerDiv.style.gap = '4px';
                 }
             }
 
@@ -634,6 +629,16 @@
                 acColumn.querySelectorAll('*').forEach(el => {
                     if (el.children.length === 0 && el.textContent.includes('ETOPS')) {
                         el.textContent = 'E';
+                        if (!isLarge) el.style.setProperty('margin-left', '4px', 'important');
+                        const bg = el.style.backgroundColor;
+                        const rgbMatch = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                        const isGray = rgbMatch
+                            ? Math.max(+rgbMatch[1], +rgbMatch[2], +rgbMatch[3]) - Math.min(+rgbMatch[1], +rgbMatch[2], +rgbMatch[3]) < 30
+                            : /gray|grey/i.test(bg);
+                        if (isGray) {
+                            el.style.setProperty('background-color', '#555', 'important');
+                            el.style.setProperty('color', 'white', 'important');
+                        }
                     }
                 });
             }
@@ -740,7 +745,7 @@
             wipLabel = document.createElement('span');
             wipLabel.setAttribute('data-wip-label', 'true');
             wipLabel.style.cssText = 'font-style: italic; font-size: 1.0em; font-weight: 300; color: var(--text-secondary-dark); align-self: center; margin-left: 20px;';
-            wipLabel.textContent = 'work in progress \u2014 insulting feedback welcome';
+            wipLabel.textContent = 'work in progress \u2014 all feedback welcome';
         }
         wipLabel.style.display = isKiosk ? '' : 'none';
         if (timeContainer.nextElementSibling !== wipLabel) {
@@ -757,9 +762,9 @@
         panel.querySelectorAll('*').forEach(el => {
             if (el.children.length > 0) return;
             const text = el.textContent.trim();
-            if (/\bMEL\b/.test(text)) {
+            if (/\bMEL/.test(text)) {
                 el.style.setProperty('color', '#ff4444', 'important');
-            } else if (/\bCDL\b/.test(text)) {
+            } else if (/\bCDL/.test(text)) {
                 el.style.setProperty('color', '#4499ff', 'important');
             }
         });
