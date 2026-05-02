@@ -1,18 +1,24 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.5
+// @version      2.0.6
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
 // @grant        GM_getValue
 // @grant        GM_setValue
+// @grant        unsafeWindow
 // ==/UserScript==
 
 (function() {
     'use strict';
 
     const displayMode = GM_getValue('displayMode', 'default');
+
+    unsafeWindow.traxSetMode = function(mode) {
+        GM_setValue('displayMode', mode);
+        location.reload();
+    };
 
     const isKiosk   = displayMode === 'kiosk';
     const isDefault = displayMode === 'default';
