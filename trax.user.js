@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.7
+// @version      2.0.8
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
@@ -89,7 +89,9 @@
         }
 
         div[style*="grid-template-columns: 1.25fr 1fr 1.25fr"] {
-            grid-template-columns: ${isLarge
+            grid-template-columns: ${isKiosk
+                ? '0.4fr 1.0fr 1.3fr 1.1fr 1.0fr 1.25fr 1.1fr 1.0fr 1.0fr 1.85fr 3fr 0.45fr'
+                : isDefault
                 ? '0.4fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.2fr 1.85fr 3fr 0.6fr'
                 : '0.55fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.1fr 1.3fr 3fr 0.65fr'} !important;
         }
@@ -532,7 +534,7 @@
             if (!firstCell) return;
             const span = firstCell.querySelector('span');
             if (span && span.textContent.trim() === 'A/C Status') {
-                span.textContent = 'Status';
+                span.textContent = '';
             }
         });
 
@@ -657,6 +659,24 @@
                 }
             }
 
+            if (timeWithGTField) {
+                const mainCol = row.children[10];
+                const hasGroundPill = mainCol && Array.from(mainCol.querySelectorAll('span')).some(s => {
+                    const t = s.textContent.trim();
+                    return t === 'MG' || t === 'A+1' || /^TRANS CK$/i.test(t) || /^TRIP CK$/i.test(t);
+                });
+                let planeIcon = timeWithGTField.querySelector('[data-trax-plane-icon]');
+                if (hasGroundPill && !planeIcon) {
+                    planeIcon = document.createElement('span');
+                    planeIcon.setAttribute('data-trax-plane-icon', 'true');
+                    planeIcon.style.cssText = 'display:inline-flex;align-items:center;margin-left:0.55em;vertical-align:middle;';
+                    planeIcon.innerHTML = `<svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M17.2932 2.84166L13.1014 7.0486L15.636 14.0208C15.7609 14.4202 15.6833 14.9152 15.5218 15.0766C15.0634 15.5356 14.7366 15.3173 14.5628 15.125L10.51 9.64959L6.02348 14.1518L6.83123 17.15C6.5123 16.8305 4.65154 14.3386 4.6071 14.293C4.57729 14.2638 2.12929 12.439 1.86548 12.1735L4.74042 12.9498L9.31186 8.46048L3.87529 4.43747C3.71948 4.29797 3.51417 3.88622 3.9338 3.46491C4.0958 3.30347 4.58517 3.25453 4.98342 3.37997L11.9252 5.89548L16.1738 1.72341C16.4708 1.42641 17.0519 1.45679 17.3123 1.71723C17.5722 1.97766 17.5902 2.54522 17.2932 2.84166ZM18.0542 0.961229C17.3534 0.258104 16.1215 0.422905 15.4167 1.12941L11.8296 4.70803L5.17635 2.22179C4.53904 2.05698 3.89723 1.84379 3.10692 2.63635C2.70361 3.04023 1.86548 3.8806 3.10692 5.12429L7.66879 8.85928L4.70049 11.8214L1.93073 11.129C1.52011 11.0232 1.24336 11.1059 1.03243 11.3388C0.926114 11.4715 0.154924 12.043 0.692674 12.5819L3.91297 15.0873L6.41835 18.3076C6.8076 18.698 7.16929 18.4544 7.66372 17.9847C7.97704 17.6709 7.90954 17.5094 7.81504 17.0521L7.18954 14.3015L10.1376 11.3433L13.867 15.9063C15.1079 17.15 15.9465 16.309 16.3499 15.9063C17.1407 15.1132 16.9281 14.4708 16.7633 13.8323L14.2979 7.16785L17.8703 3.58303C18.5751 2.87709 18.7557 1.66379 18.0542 0.961229Z" fill="currentColor"/></svg>`;
+                    timeWithGTField.appendChild(planeIcon);
+                } else if (!hasGroundPill && planeIcon) {
+                    planeIcon.remove();
+                }
+            }
+
             const acColumn = row.children[1];
             if (acColumn) {
                 acColumn.querySelectorAll('*').forEach(el => {
@@ -684,6 +704,12 @@
                 unsetOrigDestColors(row);
                 setGateNumberGray(row, false);
                 if (hasAmberText) applyAmberToAcColumn(row);
+                const acLocElEarly = row.children[8].querySelector(':scope > div:not([data-time-out])');
+                if (acLocElEarly) {
+                    const t = acLocElEarly.textContent.trim();
+                    if (t && !/\d/.test(t)) acLocElEarly.style.setProperty('font-size', '0.8em', 'important');
+                    else acLocElEarly.style.removeProperty('font-size');
+                }
                 return;
             }
 
@@ -694,6 +720,12 @@
 
             const acLocationColumn = row.children[8];
             acLocationColumn.style.setProperty('color', '#888', 'important');
+            const acLocEl = acLocationColumn.querySelector(':scope > div:not([data-time-out])');
+            if (acLocEl) {
+                const t = acLocEl.textContent.trim();
+                if (t && !/\d/.test(t)) acLocEl.style.setProperty('font-size', '0.8em', 'important');
+                else acLocEl.style.removeProperty('font-size');
+            }
             const fullText = timeWithoutGTField.textContent.trim();
             const timeMatch = fullText.match(/\d{1,2}:\d{2}/);
             const hasAcLocationTime = Boolean(timeMatch);
@@ -795,7 +827,7 @@
         panel.querySelectorAll('*').forEach(el => {
             if (el.children.length > 0) return;
             const text = el.textContent.trim();
-            if (/\bMEL/.test(text)) {
+            if (/\bMEL|\bFCP/.test(text)) {
                 el.style.setProperty('color', '#ff4444', 'important');
             } else if (/\bCDL/.test(text)) {
                 el.style.setProperty('color', '#4499ff', 'important');
