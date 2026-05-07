@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.10
+// @version      2.0.11
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
@@ -594,7 +594,8 @@
             const maintenanceCol = row.children[10];
             if (maintenanceCol) {
                 maintenanceCol.querySelectorAll('span').forEach(span => {
-                    if (['WIFI', 'H2O'].includes(span.textContent.trim().toUpperCase())) {
+                    const pillText = span.textContent.trim().toUpperCase();
+                    if (pillText === 'WIFI' || pillText.includes('H2O')) {
                         span.style.setProperty('display', 'none', 'important');
                     }
                 });
