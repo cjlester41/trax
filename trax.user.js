@@ -93,7 +93,7 @@
                 ? '0.4fr 1.0fr 1.3fr 1.1fr 1.0fr 1.25fr 1.1fr 1.0fr 1.0fr 1.85fr 3fr 0.45fr'
                 : isDefault
                 ? '0.4fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.2fr 1.85fr 3fr 0.6fr'
-                : '0.55fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.1fr 1.3fr 3fr 0.65fr'} !important;
+                : '0.5fr 0.92fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.0fr 1.3fr 3fr 0.65fr'} !important;
         }
 
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(1) > div > div > div:not(:first-child) {
@@ -181,7 +181,7 @@
         }
 
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(2) {
-            padding-left: 18px !important;
+            padding-left: ${isCompactKiosk ? '10px' : '18px'} !important;
         }
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(2) div.underline {
             text-decoration: none !important;
@@ -594,7 +594,7 @@
             const maintenanceCol = row.children[10];
             if (maintenanceCol) {
                 maintenanceCol.querySelectorAll('span').forEach(span => {
-                    if (span.textContent.trim().toUpperCase() === 'WIFI') {
+                    if (['WIFI', 'H2O'].includes(span.textContent.trim().toUpperCase())) {
                         span.style.setProperty('display', 'none', 'important');
                     }
                 });
