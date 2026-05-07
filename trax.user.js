@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.9
+// @version      2.0.10
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
@@ -93,7 +93,7 @@
                 ? '0.4fr 1.0fr 1.3fr 1.1fr 1.0fr 1.25fr 1.1fr 1.0fr 1.0fr 1.85fr 3fr 0.45fr'
                 : isDefault
                 ? '0.4fr 1.0fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.2fr 1.85fr 3fr 0.6fr'
-                : '0.5fr 0.92fr 1.3fr 1fr 0.9fr 1.25fr 1fr 0.9fr 1.0fr 1.3fr 3fr 0.65fr'} !important;
+                : '0.5fr 0.92fr 1.3fr 1.1fr 0.9fr 1.25fr 1.1fr 0.9fr 1.0fr 1.3fr 2.8fr 0.65fr'} !important;
         }
 
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(1) > div > div > div:not(:first-child) {
