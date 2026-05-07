@@ -594,7 +594,7 @@
             const maintenanceCol = row.children[10];
             if (maintenanceCol) {
                 maintenanceCol.querySelectorAll('span').forEach(span => {
-                    if (span.textContent.toUpperCase().includes('WIFI')) {
+                    if (span.textContent.trim().toUpperCase() === 'WIFI') {
                         span.style.setProperty('display', 'none', 'important');
                     }
                 });
