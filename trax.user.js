@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.14
+// @version      2.0.15
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -342,11 +342,17 @@
 
         const aogPillClone = sourceAogPill.cloneNode(true);
         aogPillClone.setAttribute('data-trax-moved-aog', 'true');
+        Array.from(aogPillClone.classList).forEach(className => {
+            if (/animate|pulse/i.test(className)) aogPillClone.classList.remove(className);
+        });
         aogPillClone.style.setProperty('display', 'inline-flex', 'important');
         aogPillClone.style.setProperty('align-items', 'center', 'important');
         aogPillClone.style.setProperty('margin-left', '0.55em', 'important');
         aogPillClone.style.setProperty('vertical-align', 'middle');
         aogPillClone.style.setProperty('flex-shrink', '0', 'important');
+        aogPillClone.style.setProperty('animation', 'none', 'important');
+        aogPillClone.style.setProperty('transition', 'none', 'important');
+        aogPillClone.style.setProperty('opacity', '1', 'important');
 
         const planeIcon = timeField.querySelector('[data-trax-plane-icon]');
         if (planeIcon) {
