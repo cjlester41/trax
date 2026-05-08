@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.15
+// @version      2.0.16
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -180,7 +180,7 @@
         }
 
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(2) {
-            padding-left: ${isCompactKiosk ? '10px' : '18px'} !important;
+            padding-left: ${isKiosk ? '18px' : '10px'} !important;
         }
         div[style*="grid-template-columns"]:not(.sticky) > div:nth-child(2) div.underline {
             text-decoration: none !important;
