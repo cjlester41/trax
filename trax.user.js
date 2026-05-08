@@ -338,10 +338,11 @@
         } else if (pillContainer) {
             pillContainer.style.removeProperty('display');
         }
-        if (movedAogPill) movedAogPill.remove();
 
-        const aogPillClone = sourceAogPill.cloneNode(true);
-        aogPillClone.setAttribute('data-trax-moved-aog', 'true');
+        const aogPillClone = movedAogPill || sourceAogPill.cloneNode(true);
+        if (!movedAogPill) {
+            aogPillClone.setAttribute('data-trax-moved-aog', 'true');
+        }
         Array.from(aogPillClone.classList).forEach(className => {
             if (/animate|pulse/i.test(className)) aogPillClone.classList.remove(className);
         });
@@ -356,9 +357,13 @@
 
         const planeIcon = timeField.querySelector('[data-trax-plane-icon]');
         if (planeIcon) {
-            planeIcon.before(aogPillClone);
+            if (aogPillClone.nextSibling !== planeIcon || aogPillClone.parentNode !== timeField) {
+                planeIcon.before(aogPillClone);
+            }
         } else {
-            timeField.appendChild(aogPillClone);
+            if (aogPillClone.parentNode !== timeField || timeField.lastChild !== aogPillClone) {
+                timeField.appendChild(aogPillClone);
+            }
         }
     }
 
