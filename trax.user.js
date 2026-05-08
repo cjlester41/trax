@@ -1,8 +1,7 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.11
+// @version      2.0.12
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
-// @author       cjlester@outlook.com
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
 // @grant        GM_getValue
@@ -305,6 +304,39 @@
                 child.classList.add('advisory-delayed');
             }
         });
+    }
+
+    function syncAogPill(row, timeField) {
+        const acColumn = row.children[1];
+        if (!acColumn) return;
+
+        const sourceAogPill = Array.from(acColumn.querySelectorAll('span[class*="rounded-full"]'))
+            .find(span => span.textContent.trim().toUpperCase() === 'AOG');
+        const movedAogPill = row.querySelector('[data-trax-moved-aog]');
+
+        if (!sourceAogPill || !timeField) {
+            if (movedAogPill) movedAogPill.remove();
+            if (sourceAogPill) sourceAogPill.style.removeProperty('display');
+            return;
+        }
+
+        sourceAogPill.style.setProperty('display', 'none', 'important');
+        if (movedAogPill) movedAogPill.remove();
+
+        const aogPillClone = sourceAogPill.cloneNode(true);
+        aogPillClone.setAttribute('data-trax-moved-aog', 'true');
+        aogPillClone.style.setProperty('display', 'inline-flex', 'important');
+        aogPillClone.style.setProperty('align-items', 'center', 'important');
+        aogPillClone.style.setProperty('margin-left', '0.55em', 'important');
+        aogPillClone.style.setProperty('vertical-align', 'middle');
+        aogPillClone.style.setProperty('flex-shrink', '0', 'important');
+
+        const planeIcon = timeField.querySelector('[data-trax-plane-icon]');
+        if (planeIcon) {
+            planeIcon.before(aogPillClone);
+        } else {
+            timeField.appendChild(aogPillClone);
+        }
     }
 
     function isMainFlightRow(row) {
@@ -697,6 +729,8 @@
                 });
             }
 
+            syncAogPill(row, timeWithGTField);
+
             if (!timeWithGTField || !timeWithoutGTField) {
                 const timeOutElement = row.children[8].querySelector('[data-time-out]');
                 if (timeOutElement) timeOutElement.remove();
@@ -732,7 +766,12 @@
             const hasAcLocationTime = Boolean(timeMatch);
             
             if (timeMatch) {
-                const statusText = fullText.replace(timeMatch[0], '').trim();
+                const statusText = fullText
+                    .replace(/\(\s*\d{1,2}:\d{2}\s*\)/g, '')
+                    .replace(timeMatch[0], '')
+                    .replace(/\(\s*\)/g, '')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
                 if (statusText) {
                     timeWithoutGTField.removeAttribute('data-hidden-text');
                     timeWithoutGTField.textContent = statusText;
