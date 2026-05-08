@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.12
+// @version      2.0.13
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -310,17 +310,28 @@
         const acColumn = row.children[1];
         if (!acColumn) return;
 
-        const sourceAogPill = Array.from(acColumn.querySelectorAll('span[class*="rounded-full"]'))
-            .find(span => span.textContent.trim().toUpperCase() === 'AOG');
+        const acPillContainer = Array.from(acColumn.querySelectorAll('.flex.flex-wrap'))
+            .find(container => /justify-start/.test(container.className) || /gap-1/.test(container.className));
+        const sourceAogPill = acPillContainer
+            ? Array.from(acPillContainer.children).find(el => el.textContent.trim().toUpperCase() === 'AOS')
+            : null;
         const movedAogPill = row.querySelector('[data-trax-moved-aog]');
 
         if (!sourceAogPill || !timeField) {
             if (movedAogPill) movedAogPill.remove();
             if (sourceAogPill) sourceAogPill.style.removeProperty('display');
+            if (acPillContainer) {
+                acPillContainer.style.removeProperty('display');
+            }
             return;
         }
 
         sourceAogPill.style.setProperty('display', 'none', 'important');
+        if (acPillContainer && Array.from(acPillContainer.children).every(el => el === sourceAogPill || el.style.display === 'none')) {
+            acPillContainer.style.setProperty('display', 'none', 'important');
+        } else if (acPillContainer) {
+            acPillContainer.style.removeProperty('display');
+        }
         if (movedAogPill) movedAogPill.remove();
 
         const aogPillClone = sourceAogPill.cloneNode(true);
@@ -599,6 +610,16 @@
             
             Array.from(flightStatusContainer.children).forEach(field => {
                 if (field.style.all) field.style.all = '';
+                const strippedText = field.textContent
+                    .replace(/\s*\(\s*\d{1,2}:\d{2}\s*\)/g, '')
+                    .replace(/\s{2,}/g, ' ')
+                    .trim();
+                if (
+                    strippedText !== field.textContent.trim() &&
+                    !field.querySelector('.sup-sub-stack, [data-trax-plane-icon], [data-trax-moved-aog], [class*="rounded-full"]')
+                ) {
+                    field.textContent = strippedText;
+                }
                 const text = field.textContent.trim();
                 if (text.includes(':') && /\d/.test(text)) {
                     if (text.includes('GT') || field.hasAttribute('data-gt-formatted')) {
@@ -729,9 +750,8 @@
                 });
             }
 
-            syncAogPill(row, timeWithGTField);
-
             if (!timeWithGTField || !timeWithoutGTField) {
+                syncAogPill(row, timeWithGTField || null);
                 const timeOutElement = row.children[8].querySelector('[data-time-out]');
                 if (timeOutElement) timeOutElement.remove();
                 row.children[8].style.removeProperty('color');
@@ -782,6 +802,11 @@
                     timeWithoutGTField.setAttribute('data-hidden-text', 'true');
                 }
             }
+
+            syncAogPill(
+                row,
+                timeWithGTField || (timeWithoutGTField.hasAttribute('data-hidden-text') ? null : timeWithoutGTField)
+            );
             
             let timeOutElement = acLocationColumn.querySelector('[data-time-out]');
             if (!timeOutElement) {
