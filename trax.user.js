@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.17
+// @version      2.0.18
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -896,12 +896,16 @@
 
         let timeText = headerTimeSpan.textContent.trim();
         timeText = timeText.substring(3);
+        let newTimeHTML;
         if (timeText.length > 5) {
             const firstPart = timeText.substring(0, 5);
             const trailingPart = timeText.substring(5).replace(/\|\s*/, '|&nbsp;&nbsp;&nbsp;');
-            timeContainer.innerHTML = firstPart + '<span style="color: var(--text-secondary-dark); margin-left: 28px; margin-right: 28px;"> ' + trailingPart + '</span>';
+            newTimeHTML = firstPart + '<span style="color: var(--text-secondary-dark); margin-left: 28px; margin-right: 28px;"> ' + trailingPart + '</span>';
         } else {
-            timeContainer.innerHTML = timeText;
+            newTimeHTML = timeText;
+        }
+        if (timeContainer.innerHTML !== newTimeHTML) {
+            timeContainer.innerHTML = newTimeHTML;
         }
 
         let wipLabel = document.querySelector('[data-wip-label]');
@@ -911,7 +915,8 @@
             wipLabel.style.cssText = 'font-style: italic; font-size: 1.0em; font-weight: 300; color: var(--text-secondary-dark); align-self: center; margin-left: 20px;';
             wipLabel.textContent = 'work in progress \u2014 all feedback welcome';
         }
-        wipLabel.style.display = isKioskLike ? '' : 'none';
+        const wipDisplay = isKioskLike ? '' : 'none';
+        if (wipLabel.style.display !== wipDisplay) wipLabel.style.display = wipDisplay;
         if (timeContainer.nextElementSibling !== wipLabel) {
             timeContainer.after(wipLabel);
         }
