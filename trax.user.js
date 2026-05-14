@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.19
+// @version      2.0.20
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -219,7 +219,7 @@
         applyThemeStyle();
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
-    let runTimeout;
+    let runTimeout = null;
     let lastDeferredDebugSummary = '';
     const DEFERRED_TOKENS = ['MEL', 'CDL', 'TIR', 'FCP', 'CREW'];
 
@@ -954,8 +954,9 @@
                 }
             });
         }
-        clearTimeout(runTimeout);
-        runTimeout = setTimeout(() => {
+        if (runTimeout) cancelAnimationFrame(runTimeout);
+        runTimeout = requestAnimationFrame(() => {
+            runTimeout = null;
             observer.disconnect();
             try {
                 processAllRows();
@@ -964,7 +965,7 @@
             } finally {
                 observer.observe(document.body, observerOptions);
             }
-        }, 100);
+        });
     });
 
     const observerOptions = {
