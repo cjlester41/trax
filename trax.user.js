@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.18
+// @version      2.0.19
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -956,18 +956,24 @@
         }
         clearTimeout(runTimeout);
         runTimeout = setTimeout(() => {
-            processAllRows();
-            moveHeaderTimeToMyAC();
-            stylePopupMelCdl();
+            observer.disconnect();
+            try {
+                processAllRows();
+                moveHeaderTimeToMyAC();
+                stylePopupMelCdl();
+            } finally {
+                observer.observe(document.body, observerOptions);
+            }
         }, 100);
     });
 
-    observer.observe(document.body, {
+    const observerOptions = {
         childList: true,
         subtree: true,
         attributes: true,
         attributeFilter: ['style', 'class']
-    });
+    };
+    observer.observe(document.body, observerOptions);
 
     function clickSortButton() {
         const btn = document.querySelector('button[aria-label="Button"] svg[viewBox="0 0 20 14"]')?.closest('button');
