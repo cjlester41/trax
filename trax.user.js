@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Trax++
-// @version      2.0.16
+// @version      2.0.17
 // @description  format Trax for readability and add MEL/CDL/TIR/FCP pills with hover-over descriptions
 // @match        https://linecontrol-react.dal-prod.emro.aero/*
 // @grant        GM_addStyle
@@ -322,21 +322,31 @@
     function syncAogPill(row, timeField) {
         const { pillContainer, pill: sourceAogPill } = findAosPillSource(row);
         const movedAogPill = row.querySelector('[data-trax-moved-aog]');
+        const setStyleIfNeeded = (el, prop, value, priority = 'important') => {
+            if (!el) return;
+            if (el.style.getPropertyValue(prop) === value && el.style.getPropertyPriority(prop) === priority) return;
+            el.style.setProperty(prop, value, priority);
+        };
+        const removeStyleIfPresent = (el, prop) => {
+            if (!el) return;
+            if (!el.style.getPropertyValue(prop)) return;
+            el.style.removeProperty(prop);
+        };
 
         if (!sourceAogPill || !timeField) {
             if (movedAogPill) movedAogPill.remove();
-            if (sourceAogPill) sourceAogPill.style.removeProperty('display');
+            removeStyleIfPresent(sourceAogPill, 'display');
             if (pillContainer) {
-                pillContainer.style.removeProperty('display');
+                removeStyleIfPresent(pillContainer, 'display');
             }
             return;
         }
 
-        sourceAogPill.style.setProperty('display', 'none', 'important');
+        setStyleIfNeeded(sourceAogPill, 'display', 'none');
         if (pillContainer && Array.from(pillContainer.children).every(el => el === sourceAogPill || el.style.display === 'none')) {
-            pillContainer.style.setProperty('display', 'none', 'important');
+            setStyleIfNeeded(pillContainer, 'display', 'none');
         } else if (pillContainer) {
-            pillContainer.style.removeProperty('display');
+            removeStyleIfPresent(pillContainer, 'display');
         }
 
         const aogPillClone = movedAogPill || sourceAogPill.cloneNode(true);
@@ -346,14 +356,14 @@
         Array.from(aogPillClone.classList).forEach(className => {
             if (/animate|pulse/i.test(className)) aogPillClone.classList.remove(className);
         });
-        aogPillClone.style.setProperty('display', 'inline-flex', 'important');
-        aogPillClone.style.setProperty('align-items', 'center', 'important');
-        aogPillClone.style.setProperty('margin-left', '0.55em', 'important');
-        aogPillClone.style.setProperty('vertical-align', 'middle');
-        aogPillClone.style.setProperty('flex-shrink', '0', 'important');
-        aogPillClone.style.setProperty('animation', 'none', 'important');
-        aogPillClone.style.setProperty('transition', 'none', 'important');
-        aogPillClone.style.setProperty('opacity', '1', 'important');
+        setStyleIfNeeded(aogPillClone, 'display', 'inline-flex');
+        setStyleIfNeeded(aogPillClone, 'align-items', 'center');
+        setStyleIfNeeded(aogPillClone, 'margin-left', '0.55em');
+        setStyleIfNeeded(aogPillClone, 'vertical-align', 'middle', '');
+        setStyleIfNeeded(aogPillClone, 'flex-shrink', '0');
+        setStyleIfNeeded(aogPillClone, 'animation', 'none');
+        setStyleIfNeeded(aogPillClone, 'transition', 'none');
+        setStyleIfNeeded(aogPillClone, 'opacity', '1');
 
         const planeIcon = timeField.querySelector('[data-trax-plane-icon]');
         if (planeIcon) {
